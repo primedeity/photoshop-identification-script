@@ -83,7 +83,7 @@ Let us know if you'd like to expand it!
 
 🧠 Credits
 
-Built by Jephthah Dodoo with help from ChatGPT ✨
+Built by Jephthah Dodoo✨
 
 
 ---
@@ -91,11 +91,4 @@ Built by Jephthah Dodoo with help from ChatGPT ✨
 📃 License
 
 This script is provided as-is. Free for personal and professional use.
-
-
----
-
-🔗 Share This Repo
-
-Feel
 
