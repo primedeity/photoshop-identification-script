@@ -1,94 +1,110 @@
-IdentificationEffect Photoshop Script
+// Identification Effect Script by Jephthah & ChatGPT
 
-A customizable Photoshop JSX script created by Jephthah Dodoo to apply identification effects (outline/glow + watermark) to any image, with flexible export options.
+// === Check for open document ===
+if (app.documents.length === 0) {
+    alert("Please open an image first.");
+    return;
+}
 
+// === Get customization inputs ===
+var userColor = prompt("Enter outline/glow color (e.g., red, #00FF00):", "#FF0000");
+var userSize = parseInt(prompt("Enter outline/glow size in pixels (e.g., 5):", "5"));
+var addWatermark = confirm("Do you want to add watermark text?");
+var watermarkText = addWatermark ? prompt("Enter watermark text:", "Sample Watermark") : "";
+var watermarkOpacity = addWatermark ? parseInt(prompt("Watermark opacity (0–100):", "30")) : 0;
 
----
+// === Reference current doc and duplicate layer ===
+var doc = app.activeDocument;
+var originalLayer = doc.activeLayer;
+var workingLayer = originalLayer.duplicate();
+workingLayer.name = "Identification Effect";
+workingLayer.convertToSmartObject();
 
-🚀 Features
+// === Apply glow effect using Layer Styles ===
+var desc = new ActionDescriptor();
+var ref = new ActionReference();
+ref.putClass(charIDToTypeID("Lefx"));
+desc.putReference(charIDToTypeID("null"), ref);
 
-🔲 Apply glow/outline to the selected layer
+var glowDesc = new ActionDescriptor();
+var glowInnerDesc = new ActionDescriptor();
 
-📝 Add a customizable text watermark
+glowInnerDesc.putBoolean(charIDToTypeID("enab"), true);
+glowInnerDesc.putEnumerated(charIDToTypeID("Md  "), charIDToTypeID("BlnM"), charIDToTypeID("Scrn"));
+glowInnerDesc.putUnitDouble(charIDToTypeID("Opct"), charIDToTypeID("#Prc"), 75);
+glowInnerDesc.putObject(charIDToTypeID("Clr "), charIDToTypeID("RGBC"), hexToRGB(userColor));
+glowInnerDesc.putUnitDouble(charIDToTypeID("Ckmt"), charIDToTypeID("#Pxl"), 0);
+glowInnerDesc.putUnitDouble(charIDToTypeID("blur"), charIDToTypeID("#Pxl"), userSize);
 
-🎨 Choose glow color and size
+glowDesc.putObject(charIDToTypeID("OrGl"), charIDToTypeID("OrGl"), glowInnerDesc);
+desc.putObject(charIDToTypeID("T   "), charIDToTypeID("Lefx"), glowDesc);
+executeAction(charIDToTypeID("setd"), desc, DialogModes.NO);
 
-💾 Save the edited image in JPG, PNG, or PSD format
+// === Optional watermark ===
+if (addWatermark) {
+    var textLayer = doc.artLayers.add();
+    textLayer.kind = LayerKind.TEXT;
+    textLayer.name = "Watermark";
+    textLayer.textItem.contents = watermarkText;
+    textLayer.textItem.position = [doc.width - 300, doc.height - 100];
+    textLayer.textItem.size = 36;
+    textLayer.opacity = watermarkOpacity;
+}
 
-📁 Automatically saves to a new folder: Identified_Images
+// === Prompt for save format ===
+var formatChoice = prompt("Save format? Type JPG, PNG, or PSD:", "JPG");
 
+if (formatChoice) {
+    formatChoice = formatChoice.toUpperCase();
+    try {
+        var originalPath = app.activeDocument.fullName.path;
+        var saveFolder = new Folder(originalPath + "/Identified_Images");
 
+        if (!saveFolder.exists) {
+            saveFolder.create();
+        }
 
----
+        var docName = app.activeDocument.name.replace(/\.[^\.]+$/, '');
+        var saveFile;
 
-📦 How to Use
+        if (formatChoice === "JPG") {
+            saveFile = new File(saveFolder + "/" + docName + "_identified.jpg");
+            var jpgOptions = new JPEGSaveOptions();
+            jpgOptions.quality = 10;
+            app.activeDocument.saveAs(saveFile, jpgOptions, true);
+        } else if (formatChoice === "PNG") {
+            saveFile = new File(saveFolder + "/" + docName + "_identified.png");
+            var pngOptions = new PNGSaveOptions();
+            app.activeDocument.saveAs(saveFile, pngOptions, true);
+        } else if (formatChoice === "PSD") {
+            saveFile = new File(saveFolder + "/" + docName + "_identified.psd");
+            var psdOptions = new PhotoshopSaveOptions();
+            app.activeDocument.saveAs(saveFile, psdOptions, true);
+        } else {
+            alert("Invalid format selected. Image not saved.");
+        }
 
-1. Open Your Image in Photoshop
+        if (saveFile) {
+            alert("Image saved successfully in:\n" + saveFile.fsName);
+        }
+    } catch (e) {
+        alert("Error saving file: " + e.message);
+    }
+}
 
-Make sure your image is loaded and active.
+// === Hex to RGB helper ===
+function hexToRGB(hex) {
+    hex = hex.replace("#", "");
+    if (hex.length === 3) {
+        hex = hex[0]+hex[0] + hex[1]+hex[1] + hex[2]+hex[2];
+    }
+    var r = parseInt(hex.substring(0,2), 16);
+    var g = parseInt(hex.substring(2,4), 16);
+    var b = parseInt(hex.substring(4,6), 16);
 
-2. Run the Script
-
-Go to:
-
-File > Scripts > Browse...
-
-Select the file: IdentificationEffect_v1_byJephthah.jsx
-
-3. Follow the Prompts
-
-Enter the glow color (e.g. #FF0000 or blue)
-
-Enter the glow size in pixels (e.g. 5)
-
-Choose to add watermark text (optional)
-
-Choose the save format (JPG, PNG, or PSD)
-
-
-4. Result
-
-Your image will be saved in a folder called Identified_Images next to the original image file.
-
-
----
-
-📸 Example Use Cases
-
-Marking ID card photos
-
-Outlining objects for emphasis
-
-Branding product photos with watermarks
-
-Quick image tagging for events
-
-
-
----
-
-🛠 Customization Ideas
-
-Add logo watermark instead of text
-
-Batch process multiple files
-
-Auto-apply preset effects for social media
-
-
-Let us know if you'd like to expand it!
-
-
----
-
-🧠 Credits
-
-Built by Jephthah Dodoo✨
-
-
----
-
-📃 License
-
-This script is provided as-is. Free for personal and professional use.
-
+    var colorDesc = new ActionDescriptor();
+    colorDesc.putDouble(charIDToTypeID("Rd  "), r);
+    colorDesc.putDouble(charIDToTypeID("Grn "), g);
+    colorDesc.putDouble(charIDToTypeID("Bl  "), b);
+    return colorDesc;
+}
