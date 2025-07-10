@@ -1,4 +1,4 @@
-// Identification Effect Script by Jephthah & ChatGPT
+// Identification Effect Script by Jephthah
 
 // === Check for open document ===
 if (app.documents.length === 0) {
